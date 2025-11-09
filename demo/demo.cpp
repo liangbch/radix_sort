@@ -1,4 +1,4 @@
-#include "../include/radix_sort.hpp"
+#include "radix_sort.hpp"
 #include<algorithm>
 
 struct mystruct
@@ -7,7 +7,7 @@ struct mystruct
     size_t value;
 };
 
-template<>
+template <>
 struct radix_trait<mystruct>
 {
 	static constexpr std::size_t radix_size = sizeof(double) / sizeof(unsigned char);
@@ -15,23 +15,25 @@ struct radix_trait<mystruct>
 	static unsigned char get(const mystruct& obj) noexcept
 	{
 		static_assert(index < radix_size);
-		return radix_trait<p1>::get<index>(obj.key);
+		return ((unsigned char*)&(obj.key))[index];
 	}
 };
+
 
 struct my_trait
 {
 	static constexpr std::size_t radix_size = sizeof(std::pair<int,int>) / sizeof(unsigned char);
 	template <size_t index>
-	static unsigned char get(const mystruct& obj) noexcept
+	static unsigned char get(const std::pair<int, int>& obj) noexcept
 	{
 		static_assert(index < radix_size);
-        if constexpr (index < sizeof(int))
-			return radix_trait_greater<p2>::get<index>(obj.second);
+		if constexpr (index < sizeof(int))
+			return radix_trait<int>::template get<index>(obj.second);
 		else
-			return radix_trait<p1>::get<index - sizeof(p2)>(obj.first);
+			return radix_trait<int>::template get<index - sizeof(int)>(obj.first);
 	}
 };
+
 
 int main()
 {
@@ -59,11 +61,6 @@ int main()
         std::vector<std::pair<int,int>> ar={{2,3},{0,1},{5,4}};
         radix_sort(ar.begin(),ar.end());
         //support std::pair
-    }
-    {
-        std::vector<void*> ar={0x300000,0x0,0x60000000};
-        radix_sort(ar.begin(),ar.end());
-        //support T*
     }
     {
         std::vector<mystruct> ar={{1.0,2},{-1.4,123},{-1.4,0}};

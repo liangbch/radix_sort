@@ -13,8 +13,107 @@ class radix_trait;
 template <typename T>
 class radix_trait_greater;
 
+
+template <typename T>
+struct radix_trait<T*>
+{
+	static constexpr std::size_t radix_size = sizeof(T*) / sizeof(unsigned char);
+	template <size_t index>
+	static unsigned char get(T* const & obj) noexcept
+	{
+		static_assert(index < radix_size);
+		return ((unsigned char*)&obj)[index];
+	}
+};
+
+template <typename T>
+struct radix_trait_greater<T*>
+{
+	static constexpr std::size_t radix_size = sizeof(T) / sizeof(unsigned char);
+	template <size_t index>
+	static unsigned char get(T* const& obj) noexcept
+	{
+		static_assert(index < radix_size);
+		return ~((unsigned char*)&obj)[index];
+	}
+};
+
+template <std::unsigned_integral T>
+struct radix_trait<T>
+{
+	static constexpr std::size_t radix_size = sizeof(T) / sizeof(unsigned char);
+	template <size_t index>
+	static unsigned char get(const T& obj) noexcept
+	{
+		static_assert(index < radix_size);
+		return ((unsigned char*)&obj)[index];
+	}
+};
+
+template <std::unsigned_integral T>
+struct radix_trait_greater<T>
+{
+	static constexpr std::size_t radix_size = sizeof(T) / sizeof(unsigned char);
+	template <size_t index>
+	static unsigned char get(const T& obj) noexcept
+	{
+		static_assert(index < radix_size);
+		return ~((unsigned char*)&obj)[index];
+	}
+};
+
+
+template <typename T>
+	requires std::signed_integral<T> || std::floating_point<T>
+struct radix_trait<T>
+{
+	static constexpr std::size_t radix_size = sizeof(T) / sizeof(unsigned char);
+	template <size_t index>
+	static unsigned char get(const T& obj) noexcept
+	{
+		static_assert(index < radix_size);
+		if constexpr (index < radix_size - 1)
+			return ((unsigned char*)&obj)[index];
+		else
+			return ((unsigned char*)&obj)[index] ^ 0x80u;
+	}
+};
+
+template <typename T>
+	requires std::signed_integral<T> || std::floating_point<T>
+struct radix_trait_greater<T>
+{
+	static constexpr std::size_t radix_size = sizeof(T) / sizeof(unsigned char);
+	template <size_t index>
+	static unsigned char get(const T& obj) noexcept
+	{
+		static_assert(index < radix_size);
+		if constexpr (index < radix_size - 1)
+			return ~((unsigned char*)&obj)[index];
+		else
+			return ~(((unsigned char*)&obj)[index] ^ 0x80u);
+	}
+};
+
+template<typename p1, typename p2>
+struct radix_trait<std::pair<p1, p2>>
+{
+	static constexpr std::size_t radix_size = (sizeof(p1)+sizeof(p2)) / sizeof(unsigned char);
+	template <size_t index>
+	static unsigned char get(const std::pair<p1, p2>& obj) noexcept
+	{
+		static_assert(index < radix_size);
+		if constexpr (index < sizeof(p2))
+			return radix_trait<p2>::template get<index>(obj.second);
+		else
+			return radix_trait<p1>::template get<index - sizeof(p2)>(obj.first);
+	}
+};
+
 template<size_t i, typename Trait, typename Iter, typename cnt_type>
-void count_duff_device(Iter begin, Iter end, std::array<cnt_type, std::numeric_limits<unsigned char>::max() + 1 >& counter)
+void count_duff_device(
+	Iter begin, Iter end, std::array<cnt_type, 
+	std::numeric_limits<unsigned char>::max() + 1 >& counter)
 {
 	if constexpr (i > 0)
 		memset(counter.data(), 0, sizeof(counter));
@@ -238,8 +337,12 @@ void radix_sort(Iter first, Iter second, typename std::iterator_traits<Iter>::va
 }
 
 template <typename Iter, typename ExecutionPolicy>
-void radix_sort(Iter first, Iter second, ExecutionPolicy&& policy, typename std::iterator_traits<Iter>::value_type* buffer = nullptr)
+void radix_sort(Iter first, Iter second, ExecutionPolicy&& policy,
+	 typename std::iterator_traits<Iter>::value_type* buffer = nullptr)
 {
+	// 添加 (void)policy 来消除警告
+	(void)policy;
+
 	if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, std::execution::parallel_policy> || std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, std::execution::parallel_unsequenced_policy>)
 		parallel_radix_sort<radix_trait<typename std::iterator_traits<Iter>::value_type>>(first, second, buffer);
 	else
@@ -247,107 +350,15 @@ void radix_sort(Iter first, Iter second, ExecutionPolicy&& policy, typename std:
 }
 
 template <typename Trait, typename Iter, typename ExecutionPolicy>
-void radix_sort(Iter first, Iter second, ExecutionPolicy&& policy, typename std::iterator_traits<Iter>::value_type* buffer = nullptr)
+void radix_sort(Iter first, Iter second, ExecutionPolicy&& policy, 
+	typename std::iterator_traits<Iter>::value_type* buffer = nullptr)
 {
+	// 添加 (void)policy 来消除警告
+	(void)policy;
+	
 	if constexpr (std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, std::execution::parallel_policy> || std::is_same_v<std::remove_cvref_t<ExecutionPolicy>, std::execution::parallel_unsequenced_policy>)
 		parallel_radix_sort<Trait>(first, second, buffer);
 	else
 		radix_sort<Trait>(first, second, buffer);
 }
 
-
-template <typename T>
-struct radix_trait<T*>
-{
-	static constexpr std::size_t radix_size = sizeof(T*) / sizeof(unsigned char);
-	template <size_t index>
-	static unsigned char get(T* const & obj) noexcept
-	{
-		static_assert(index < radix_size);
-		return ((unsigned char*)&obj)[index];
-	}
-};
-
-template <typename T>
-struct radix_trait_greater<T*>
-{
-	static constexpr std::size_t radix_size = sizeof(T) / sizeof(unsigned char);
-	template <size_t index>
-	static unsigned char get(T* const& obj) noexcept
-	{
-		static_assert(index < radix_size);
-		return ~((unsigned char*)&obj)[index];
-	}
-};
-
-template <std::unsigned_integral T>
-struct radix_trait<T>
-{
-	static constexpr std::size_t radix_size = sizeof(T) / sizeof(unsigned char);
-	template <size_t index>
-	static unsigned char get(const T& obj) noexcept
-	{
-		static_assert(index < radix_size);
-		return ((unsigned char*)&obj)[index];
-	}
-};
-
-template <std::unsigned_integral T>
-struct radix_trait_greater<T>
-{
-	static constexpr std::size_t radix_size = sizeof(T) / sizeof(unsigned char);
-	template <size_t index>
-	static unsigned char get(const T& obj) noexcept
-	{
-		static_assert(index < radix_size);
-		return ~((unsigned char*)&obj)[index];
-	}
-};
-
-
-template <typename T>
-	requires std::signed_integral<T> || std::floating_point<T>
-struct radix_trait<T>
-{
-	static constexpr std::size_t radix_size = sizeof(T) / sizeof(unsigned char);
-	template <size_t index>
-	static unsigned char get(const T& obj) noexcept
-	{
-		static_assert(index < radix_size);
-		if constexpr (index < radix_size - 1)
-			return ((unsigned char*)&obj)[index];
-		else
-			return ((unsigned char*)&obj)[index] ^ 0x80u;
-	}
-};
-
-template <typename T>
-	requires std::signed_integral<T> || std::floating_point<T>
-struct radix_trait_greater<T>
-{
-	static constexpr std::size_t radix_size = sizeof(T) / sizeof(unsigned char);
-	template <size_t index>
-	static unsigned char get(const T& obj) noexcept
-	{
-		static_assert(index < radix_size);
-		if constexpr (index < radix_size - 1)
-			return ~((unsigned char*)&obj)[index];
-		else
-			return ~(((unsigned char*)&obj)[index] ^ 0x80u);
-	}
-};
-
-template<typename p1, typename p2>
-struct radix_trait<std::pair<p1, p2>>
-{
-	static constexpr std::size_t radix_size = (sizeof(p1)+sizeof(p2)) / sizeof(unsigned char);
-	template <size_t index>
-	static unsigned char get(const std::pair<p1, p2>& obj) noexcept
-	{
-		static_assert(index < radix_size);
-		if constexpr (index < sizeof(p2))
-			return radix_trait<p2>::template get<index>(obj.second);
-		else
-			return radix_trait<p1>::template get<index - sizeof(p2)>(obj.first);
-	}
-};

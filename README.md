@@ -1,5 +1,18 @@
 # radix_sort
-A high performence Cross-platform (parallel) STL-like LSD radix sort algorithm by C++20, 2.5-14.3x faster than std::sort, support user-defined struct. 
+The source code is base on  poor-circle/radix_sort and
+1. Add CMakeLists.txt for build in Linux
+2. Fix some compile issue on gcc
+
+A high performence Cross-platform (parallel) STL-like LSD radix sort algorithm by C++20, 2.5-14.3x faster than std::sort, support user-defined struct.
+
+## build in Linux
+
+```bash
+mkdir build
+cd build
+cmake ..
+make
+```
 
 ## Usage
 
@@ -60,11 +73,103 @@ A high performence Cross-platform (parallel) STL-like LSD radix sort algorithm b
 
 ## benchmark
 
-i9-9900k, msvc release, ddr4-3000mhz
+Running on Xeon(R) CPU E5-2670@ 2.60GHz and DDR3 1600 MHz, the results are as follows.
+```
 
-std::sort used time(1 billion int32):91407ms       
-std::stable_sort used time(1 billion int32):82896ms           
-radix_sort used time(1 billion int32):6402ms   
-radix_sort(parallel) used time(1 billion int32):2603ms    
-             
-radix_sort is 14.28x faster than std::sort    
+Run sort on int vector with 1e+06 elements:
+|std::sort|70ms|
+|std::stable_sort|81ms|
+|radix_sort|12ms|
+|std::sort(par)|7ms|
+|std::stable_sort(par)|7ms|
+|radix_sort(par)|4ms|
+
+Run sort on size_t vector with 1e+06 elements:
+|std::sort|68ms|
+|std::stable_sort|83ms|
+|radix_sort|32ms|
+|std::sort(par)|7ms|
+|std::stable_sort(par)|8ms|
+|radix_sort(par)|12ms|
+
+Run sort on pair<int,uint> vector with 1e+06 elements:
+|std::sort|87ms|
+|std::stable_sort|92ms|
+|radix_sort|34ms|
+|std::sort(par)|8ms|
+|std::stable_sort(par)|9ms|
+|radix_sort(par)|11ms|
+
+Run sort on pair<size_t,size_t> vector with 1e+06 elements:
+|std::sort|75ms|
+|std::stable_sort|93ms|
+|radix_sort|62ms|
+|std::sort(par)|16ms|
+|std::stable_sort(par)|15ms|
+|radix_sort(par)|30ms|
+
+Run sort on int vector with 1e+07 elements:
+|std::sort|805ms|
+|std::stable_sort|977ms|
+|radix_sort|142ms|
+|std::sort(par)|103ms|
+|std::stable_sort(par)|110ms|
+|radix_sort(par)|53ms|
+
+Run sort on size_t vector with 1e+07 elements:
+|std::sort|786ms|
+|std::stable_sort|1032ms|
+|radix_sort|389ms|
+|std::sort(par)|157ms|
+|std::stable_sort(par)|166ms|
+|radix_sort(par)|182ms|
+
+Run sort on pair<int,uint> vector with 1e+07 elements:
+|std::sort|1003ms|
+|std::stable_sort|1147ms|
+|radix_sort|418ms|
+|std::sort(par)|170ms|
+|std::stable_sort(par)|166ms|
+|radix_sort(par)|179ms|
+
+Run sort on pair<size_t,size_t> vector with 1e+07 elements:
+|std::sort|878ms|
+|std::stable_sort|1172ms|
+|radix_sort|694ms|
+|std::sort(par)|293ms|
+|std::stable_sort(par)|298ms|
+|radix_sort(par)|352ms|
+
+Run sort on int vector with 1e+08 elements:
+|std::sort|9157ms|
+|std::stable_sort|11361ms|
+|radix_sort|1434ms|
+|std::sort(par)|1232ms|
+|std::stable_sort(par)|1246ms|
+|radix_sort(par)|551ms|
+
+Run sort on size_t vector with 1e+08 elements:
+|std::sort|9023ms|
+|std::stable_sort|11968ms|
+|radix_sort|4044ms|
+|std::sort(par)|1793ms|
+|std::stable_sort(par)|1831ms|
+|radix_sort(par)|1746ms|
+
+Run sort on pair<int,uint> vector with 1e+08 elements:
+|std::sort|11456ms|
+|std::stable_sort|13263ms|
+|radix_sort|4225ms|
+|std::sort(par)|1897ms|
+|std::stable_sort(par)|1928ms|
+|radix_sort(par)|1764ms|
+
+Run sort on pair<size_t,size_t> vector with 1e+08 elements:
+|std::sort|10157ms|
+|std::stable_sort|14203ms|
+|radix_sort|7855ms|
+|std::sort(par)|4659ms|
+|std::stable_sort(par)|5066ms|
+|radix_sort(par)|3541ms|
+
+```
