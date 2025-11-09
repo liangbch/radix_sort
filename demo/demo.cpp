@@ -1,5 +1,6 @@
 #include "radix_sort.hpp"
-#include<algorithm>
+#include <algorithm>
+#include <iostream>
 
 struct mystruct
 {
@@ -20,6 +21,18 @@ struct radix_trait<mystruct>
 };
 
 
+template<typename T>
+void print_vector(const std::vector<T>& vec) {
+    std::cout << "[";
+    for (auto it = vec.begin(); it != vec.end(); ++it) {
+        std::cout << *it;
+        if (std::next(it) != vec.end()) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << "]" << std::endl;
+}
+
 struct my_trait
 {
 	static constexpr std::size_t radix_size = sizeof(std::pair<int,int>) / sizeof(unsigned char);
@@ -38,8 +51,10 @@ struct my_trait
 int main()
 {
     {
-        std::vector<int> ar={2,3,1};
+        std::vector<int> ar={-1,-2, -3, 1, 3, 2,0};
+        std::cout << "Before sort: ";   print_vector(ar);
         radix_sort(ar.begin(),ar.end());
+        std::cout << "After sort: ";   print_vector(ar);
         //support signed number
     }
     {
@@ -53,8 +68,10 @@ int main()
         //descending order
     }
     {
-        std::vector<float> ar={1.0f,2.4f,-3.5f};
+        std::vector<float> ar={-0.001f,0.001f,0.0,1.5f,3.0f,-1.5f,-3.0f,};
+        std::cout << "Before sort: ";   print_vector(ar);
         radix_sort(ar.begin(),ar.end());
+        std::cout << "After sort: ";   print_vector(ar);
         //support floating point
     }
     {
