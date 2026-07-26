@@ -1,0 +1,13 @@
+#ifndef CPU_CONFIG_H
+#define CPU_CONFIG_H
+
+// CPU 缓存配置 (自动生成于 CMake 配置时)
+// 请勿手动修改此文件
+
+// L1 数据缓存大小 (字节)
+#define L1_DATA_CACHE_SIZE 32768
+
+// L2 缓存大小 (字节)
+#define L2_CACHE_SIZE 262144
+
+#endif // CPU_CONFIG_H

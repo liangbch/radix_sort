@@ -13,6 +13,29 @@ cd build
 cmake ..
 make
 ```
+## build in windows
+
+### 1. 安装 vcpkg（如果还没安装）
+```
+mkdir c:\Microsoft
+cd c:\Microsoft 
+git clone https://github.com/Microsoft/vcpkg.git
+cd vcpkg
+.\bootstrap-vcpkg.bat
+```
+
+### 2. 安装 TBB：
+```
+.\vcpkg install tbb:x64-windows
+```
+
+### build this project
+```
+md build
+cd build
+cmake .. -DTBB_DIR="C:\Microsoft\vcpkg\installed\x64-windows\share\tbb"
+make
+```
 
 ## Usage
 
